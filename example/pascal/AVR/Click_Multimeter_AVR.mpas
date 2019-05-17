@@ -1,0 +1,91 @@
+{*
+Example for Multimeter Click
+
+    Date          : jul 2018.
+    Author        : MikroE Team
+
+Test configuration AVR :
+    
+    MCU              : ATMEGA32
+    Dev. Board       : EasyAVR v7 
+    AVR Compiler ver : v7.0.1.0
+
+---
+
+Description :
+
+The application is composed of three sections :
+
+- System Initialization - Initializes pin control, spi peripheral and logger.
+- Application Initialization - Initializes the driver, and performs calibration.
+- Application Task - Outputs read values.
+
+*}
+program Click_Multimeter_AVR;
+
+uses Click_Multimeter_types, Click_Multimeter_config;
+
+procedure systemInit(); 
+begin
+
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_AN_PIN, _GPIO_OUTPUT); 
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_CS_PIN, _GPIO_OUTPUT); 
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_PWM_PIN, _GPIO_OUTPUT); 
+    mikrobus_gpioInit(_MIKROBUS1, _MIKROBUS_INT_PIN, _GPIO_OUTPUT); 
+    mikrobus_spiInit(_MIKROBUS1, @_MULTIMETER_SPI_CFG[0]); 
+    mikrobus_logInit(_LOG_USBUART, 9600); 
+    Delay_ms(100); 
+
+end;
+
+procedure applicationInit(); 
+begin
+
+    multimeter_spiDriverInit(T_MULTIMETER_P(@_MIKROBUS1_GPIO), T_MULTIMETER_P(@_MIKROBUS1_SPI)); 
+    multimeter_calibrate(); 
+    mikrobus_logWrite('Initialized', _LOG_LINE); 
+
+end;
+
+procedure applicationTask(); 
+var
+    text : array[20] of char;
+    value : real;
+begin
+    value := 0;
+
+    value := multimeter_measureR(); 
+    FloatToStr(value, text); 
+    mikrobus_logWrite('R = ', _LOG_TEXT); 
+    mikrobus_logWrite(text, _LOG_TEXT); 
+    mikrobus_logWrite('  Ohms', _LOG_LINE); 
+    value := multimeter_measureU(); 
+    FloatToStr(value, text); 
+    mikrobus_logWrite('U = ', _LOG_TEXT); 
+    mikrobus_logWrite(text, _LOG_TEXT); 
+    mikrobus_logWrite('  mV', _LOG_LINE); 
+    value := multimeter_measureI(); 
+    FloatToStr(value, text); 
+    mikrobus_logWrite('I = ', _LOG_TEXT); 
+    mikrobus_logWrite(text, _LOG_TEXT); 
+    mikrobus_logWrite('  mA', _LOG_LINE); 
+    value := multimeter_measureC(); 
+    FloatToStr(value, text); 
+    mikrobus_logWrite('C = ', _LOG_TEXT); 
+    mikrobus_logWrite(text, _LOG_TEXT); 
+    mikrobus_logWrite('  nF', _LOG_LINE); 
+    mikrobus_logWrite('-------------------', _LOG_LINE); 
+    Delay_ms(1000); 
+
+end;
+
+begin
+
+    systemInit(); 
+    applicationInit(); 
+    while (1) do 
+    begin 
+        applicationTask(); 
+    end;
+
+end.

@@ -1,0 +1,8 @@
+unit Click_Multimeter_config;
+
+uses Click_Multimeter_types;
+
+const
+    _MULTIMETER_SPI_CFG : array[3] of uint32_t = (1000000, _SPI_MASTER, ((_SPI_8_BIT or _SPI_CLK_IDLE_HIGH) or _SPI_SECOND_CLK_EDGE_TRANSITION)); 
+    
+end.
